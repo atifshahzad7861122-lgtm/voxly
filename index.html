@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Voxly – Viral Shorts Studio</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <style>#replit-badge { display: none !important; }</style>
+</head>
+<body>
+
+<!-- ── Fixed ambient orbs ──────────────────────────────────────────────── -->
+<div class="ambient-orb ambient-orb-purple" style="position:fixed;top:-10%;left:-5%;width:600px;height:600px;z-index:0;pointer-events:none;"></div>
+<div class="ambient-orb ambient-orb-blue" style="position:fixed;bottom:-20%;right:-10%;width:800px;height:800px;z-index:0;pointer-events:none;"></div>
+<!-- Subtle grid overlay -->
+<div style="position:fixed;inset:0;z-index:0;pointer-events:none;background-image:url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAxNSkiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==');"></div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     SIDEBAR
+══════════════════════════════════════════════════════════════════════ -->
+<nav id="v-sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">
+      <svg width="22" height="22" viewBox="0 0 28 28" fill="none">
+        <rect width="28" height="28" rx="8" fill="url(#logoG)"/>
+        <path d="M10 9L19 14L10 19V9Z" fill="white"/>
+        <defs><linearGradient id="logoG" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse"><stop stop-color="#D97706"/><stop offset="1" stop-color="#FCD34D"/></linearGradient></defs>
+      </svg>
+    </div>
+    <span class="brand-name">Voxly</span>
+  </div>
+
+  <nav class="sidebar-nav" role="navigation" aria-label="Main navigation">
+    <button class="nav-item active" data-tab="studio" aria-label="Studio">
+      <span class="material-symbols-outlined nav-icon" style="font-variation-settings:'FILL' 1">movie_edit</span>
+      <span class="nav-label">Studio</span>
+    </button>
+    <button class="nav-item" data-tab="dashboard" aria-label="Dashboard">
+      <span class="material-symbols-outlined nav-icon">dashboard</span>
+      <span class="nav-label">Dashboard</span>
+    </button>
+    <button class="nav-item" data-tab="history" aria-label="History">
+      <span class="material-symbols-outlined nav-icon">history</span>
+      <span class="nav-label">History</span>
+    </button>
+  </nav>
+
+  <div style="flex:1;"></div>
+
+  <div class="sidebar-footer-section">
+    <div class="sidebar-status-dot">
+      <span class="status-dot green"></span>
+      <span>Engine v2 Online</span>
+    </div>
+    <div class="sidebar-status-dot" id="cookie-status-badge" style="cursor:pointer;" title="Click to manage YouTube cookies" onclick="document.getElementById('cookie-panel-modal').style.display='flex'">
+      <span class="status-dot red" id="cookie-badge-dot"></span>
+      <span id="cookie-badge-text">No Cookies</span>
+    </div>
+  </div>
+  <div class="sidebar-footer-text">Powered by AI With Atif</div>
+</nav>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     MAIN WRAPPER
+══════════════════════════════════════════════════════════════════════ -->
+<div id="main-wrap">
+
+  <!-- ════════════════════════════════
+       TAB: STUDIO
+  ════════════════════════════════ -->
+  <div id="tab-studio" class="tab-panel active">
+
+    <!-- ── TOP APP BAR ── -->
+    <header class="top-bar">
+      <div class="top-bar-title">
+        <span class="material-symbols-outlined" style="color:#fbbf24;font-size:28px;font-variation-settings:'FILL' 1">play_circle</span>
+        <span>Studio</span>
+      </div>
+    </header>
+
+    <!-- ── SCREEN: INPUT ── -->
+    <section id="screen-input" class="screen active" style="padding:0 40px 80px;">
+
+      <div class="page-heading">
+        <h1>Viral Shorts <span class="text-amber-grad">Studio</span></h1>
+        <p>Configure your AI engine to generate high-retention vertical clips.</p>
+      </div>
+
+      <div class="studio-layout">
+
+        <!-- LEFT: Main Config Card -->
+        <div class="glass-card input-card">
+          <div class="card-top-glow"></div>
+
+          <!-- ── Segment 1: Source Toggle ── -->
+          <div class="field-group">
+            <div class="source-toggle-row">
+              <label class="field-label" style="margin:0;">Video Source</label>
+              <div class="pill-radio-wrap">
+                <input type="radio" name="source-type" id="src-youtube" value="youtube" checked/>
+                <label for="src-youtube">
+                  <span class="material-symbols-outlined" style="font-size:14px;vertical-align:-3px;">smart_display</span>
+                  YouTube URL
+                </label>
+                <input type="radio" name="source-type" id="src-upload" value="upload"/>
+                <label for="src-upload">
+                  <span class="material-symbols-outlined" style="font-size:14px;vertical-align:-3px;">upload_file</span>
+                  Upload File
+                </label>
+              </div>
+            </div>
+
+            <!-- YouTube URL panel -->
+            <div id="source-youtube-panel">
+              <div class="glass-input-wrap input-wrapper">
+                <span class="material-symbols-outlined field-icon" style="color:#ef4444;font-variation-settings:'FILL' 1">smart_display</span>
+                <input id="youtube-url-input" type="url" placeholder="Paste YouTube URL here..." autocomplete="off" spellcheck="false"/>
+              </div>
+            </div>
+
+            <!-- File Upload panel -->
+            <div id="source-upload-panel" style="display:none;">
+              <div id="upload-drop-zone" class="upload-drop-zone">
+                <input type="file" id="video-file-input" accept="video/mp4,video/quicktime,video/x-matroska,video/webm,video/avi,.mp4,.mov,.mkv,.webm,.avi,.m4v" style="display:none"/>
+                <span class="material-symbols-outlined" style="font-size:36px;color:#d0bcff;display:block;margin-bottom:8px;font-variation-settings:'FILL' 1">cloud_upload</span>
+                <p style="font-size:14px;color:#ede1d0;font-weight:600;margin-bottom:4px;">Drop video here or <span style="color:#fbbf24;cursor:pointer;" id="upload-browse-link">browse</span></p>
+                <p style="font-size:12px;color:#9e8f78;">MP4, MOV, MKV, WEBM, AVI — up to 2 GB</p>
+              </div>
+              <div id="upload-progress-area" style="display:none;">
+                <div class="upload-file-info">
+                  <span class="material-symbols-outlined" style="color:#fbbf24;font-size:18px;font-variation-settings:'FILL' 1">movie</span>
+                  <span id="upload-filename" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#ede1d0;font-size:13px;"></span>
+                  <button id="upload-cancel-btn" title="Remove file" style="background:transparent;border:none;cursor:pointer;color:#9e8f78;padding:0;">
+                    <span class="material-symbols-outlined" style="font-size:18px;">close</span>
+                  </button>
+                </div>
+                <div class="upload-bar-wrap">
+                  <div class="upload-bar-track"><div id="upload-bar-fill" class="upload-bar-fill" style="width:0%"></div></div>
+                  <span id="upload-pct-label" style="font-size:11px;color:#9e8f78;min-width:36px;text-align:right;">0%</span>
+                </div>
+                <p id="upload-status-text" style="font-size:12px;color:#9e8f78;margin-top:4px;"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Options Grid -->
+          <div class="options-grid">
+
+            <!-- Crop Mode -->
+            <div class="option-tile">
+              <p class="tile-title">Crop Mode</p>
+              <p class="tile-sub">Face-focus or letterbox</p>
+              <div class="pill-radio-wrap">
+                <input type="radio" name="crop-mode" id="mode-fill" value="fill" checked/>
+                <label for="mode-fill">Fill</label>
+                <input type="radio" name="crop-mode" id="mode-pad" value="pad"/>
+                <label for="mode-pad">Pad</label>
+              </div>
+            </div>
+
+            <!-- Duration -->
+            <div class="option-tile">
+              <p class="tile-label-upper">Clip Duration</p>
+              <div class="pill-radio-wrap">
+                <input type="radio" name="clip-duration" id="dur-15" value="15"/>
+                <label for="dur-15">15s</label>
+                <input type="radio" name="clip-duration" id="dur-30" value="30"/>
+                <label for="dur-30">30s</label>
+                <input type="radio" name="clip-duration" id="dur-45" value="45" checked/>
+                <label for="dur-45">45s</label>
+                <input type="radio" name="clip-duration" id="dur-60" value="60"/>
+                <label for="dur-60">60s</label>
+              </div>
+            </div>
+
+            <!-- Auto Captions -->
+            <div class="option-tile option-tile-row">
+              <div>
+                <p class="tile-title">Auto Captions</p>
+                <p class="tile-sub">Burned-in dynamic text</p>
+              </div>
+              <div class="pill-radio-wrap">
+                <input type="radio" name="auto-captions" id="cap-on" value="true" checked/>
+                <label for="cap-on">CC On</label>
+                <input type="radio" name="auto-captions" id="cap-off" value="false"/>
+                <label for="cap-off">CC Off</label>
+              </div>
+            </div>
+
+            <!-- Clip Count -->
+            <div class="option-tile option-tile-row">
+              <div>
+                <p class="tile-title">Number of Clips</p>
+                <p class="tile-sub">Limit generation</p>
+              </div>
+              <div class="clip-stepper">
+                <button id="clips-dec" class="stepper-btn" aria-label="Fewer clips">
+                  <span class="material-symbols-outlined" style="font-size:18px;">remove</span>
+                </button>
+                <span id="clips-display" class="clips-default">Default</span>
+                <button id="clips-inc" class="stepper-btn" aria-label="More clips">
+                  <span class="material-symbols-outlined" style="font-size:18px;">add</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Segment 1: Language Selector ── -->
+          <div class="field-group" id="language-selector-group">
+            <label class="field-label">
+              <span class="material-symbols-outlined" style="font-size:14px;vertical-align:-2px;color:#fbbf24;">translate</span>
+              Caption Language
+            </label>
+            <div class="language-grid" id="language-grid" role="radiogroup" aria-label="Caption language">
+              <button class="lang-btn active" data-lang="english" title="English">🇬🇧 English</button>
+              <button class="lang-btn" data-lang="hindi" title="Hindi">🇮🇳 Hindi</button>
+              <button class="lang-btn" data-lang="urdu" title="Urdu">🇵🇰 Urdu</button>
+              <button class="lang-btn" data-lang="punjabi" title="Punjabi">🌟 Punjabi</button>
+              <button class="lang-btn" data-lang="nepali" title="Nepali">🇳🇵 Nepali</button>
+              <button class="lang-btn" data-lang="tamil" title="Tamil">🇮🇳 Tamil</button>
+              <button class="lang-btn" data-lang="telugu" title="Telugu">🌺 Telugu</button>
+              <button class="lang-btn" data-lang="bengali" title="Bengali">🇧🇩 Bengali</button>
+              <button class="lang-btn" data-lang="gujarati" title="Gujarati">🌿 Gujarati</button>
+              <button class="lang-btn" data-lang="marathi" title="Marathi">🎯 Marathi</button>
+              <button class="lang-btn" data-lang="kannada" title="Kannada">🌸 Kannada</button>
+              <button class="lang-btn" data-lang="malayalam" title="Malayalam">🌴 Malayalam</button>
+              <button class="lang-btn" data-lang="sindhi" title="Sindhi">⭐ Sindhi</button>
+              <button class="lang-btn" data-lang="pushto" title="Pashto">🏔 Pashto</button>
+              <button class="lang-btn" data-lang="malay" title="Malay">🇲🇾 Malay</button>
+            </div>
+          </div>
+
+          <!-- ── Segment 3: Audio Enhancement ── -->
+          <div class="field-group">
+            <div class="option-tile option-tile-row" style="background:rgba(14,165,233,0.05);border-color:rgba(14,165,233,0.15);">
+              <div>
+                <p class="tile-title" style="display:flex;align-items:center;gap:6px;">
+                  <span class="material-symbols-outlined" style="font-size:16px;color:#c4e4ff;font-variation-settings:'FILL' 1">graphic_eq</span>
+                  AI Audio Enhancement
+                </p>
+                <p class="tile-sub">Rumble cut · Noise removal · Presence EQ · Compression · Loudness norm</p>
+              </div>
+              <label class="toggle-switch" title="Enable AI Audio Enhancement">
+                <input type="checkbox" id="audio-enhance-toggle"/>
+                <span class="toggle-track"><span class="toggle-thumb"></span></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- B-Roll AI -->
+          <div class="field-group">
+          <div class="option-tile option-tile-row" style="background:rgba(245,158,11,0.05);border-color:rgba(245,158,11,0.18);">
+            <div>
+              <p class="tile-title" style="display:flex;align-items:center;gap:6px;">
+                <span class="material-symbols-outlined" style="font-size:16px;color:#fbbf24;font-variation-settings:'FILL' 1">auto_awesome</span>
+                B-Roll AI Generation
+                <span style="font-size:10px;font-weight:700;background:linear-gradient(135deg,#f59e0b,#fcd34d);color:#000;padding:2px 7px;border-radius:20px;letter-spacing:0.04em;">FREE</span>
+              </p>
+              <p class="tile-sub">Auto-generate cinematic B-roll visuals · Flux AI · No key needed</p>
+            </div>
+            <label class="toggle-switch" title="Enable B-Roll AI Generation">
+              <input type="checkbox" id="broll-toggle"/>
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+          </div>
+          </div>
+
+          <!-- ── Color Grading ── -->
+          <div class="field-group">
+            <p class="field-label" style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+              <span class="material-symbols-outlined" style="font-size:15px;color:#c084fc;font-variation-settings:'FILL' 1">palette</span>
+              Color Grading
+            </p>
+            <div class="grade-pills" id="grade-pills" role="radiogroup" aria-label="Color grading preset">
+              <button class="grade-pill active" data-grade="none" title="No color grading">
+                <span class="grade-swatch" style="background:linear-gradient(135deg,#555 0%,#888 100%)"></span>
+                <span>None</span>
+              </button>
+              <button class="grade-pill" data-grade="cinematic" title="Cinematic Orange-Teal">
+                <span class="grade-swatch" style="background:linear-gradient(135deg,#e07b3a 0%,#1a8c8c 100%)"></span>
+                <span>Cinematic</span>
+              </button>
+              <button class="grade-pill" data-grade="warm" title="Warm golden tones">
+                <span class="grade-swatch" style="background:linear-gradient(135deg,#f59e0b 0%,#ef4444 100%)"></span>
+                <span>Warm</span>
+              </button>
+              <button class="grade-pill" data-grade="cold" title="Cool blue tones">
+                <span class="grade-swatch" style="background:linear-gradient(135deg,#3b82f6 0%,#06b6d4 100%)"></span>
+                <span>Cold</span>
+              </button>
+              <button class="grade-pill" data-grade="moody" title="Dark moody contrast">
+                <span class="grade-swatch" style="background:linear-gradient(135deg,#4c1d95 0%,#1f2937 100%)"></span>
+                <span>Moody</span>
+              </button>
+              <button class="grade-pill" data-grade="bleach" title="Bleach bypass desaturated">
+                <span class="grade-swatch" style="background:linear-gradient(135deg,#9ca3af 0%,#1f2937 100%)"></span>
+                <span>Bleach</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Caption Style Section -->
+          <div class="caption-styling-section" id="caption-styling-section">
+            <div class="caption-styling-header">
+              <span class="field-label">Caption Style</span>
+              <button id="btn-customize" class="btn-customize" onclick="document.getElementById('caption-customizer-modal').style.display='flex'">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+                Customize
+              </button>
+            </div>
+            <div class="style-cards-row" role="radiogroup" aria-label="Caption style selection">
+              <button class="style-card active" data-style="mrbeast" aria-label="MrBeast style" aria-pressed="true">
+                <div class="style-preview mrbeast-preview">
+                  <span class="sp-word sp-yellow">💰 WE</span>
+                  <span class="sp-word sp-white">WON</span>
+                </div>
+                <div class="style-card-name">MrBeast</div>
+              </button>
+              <button class="style-card" data-style="hormozi" aria-label="Alex Hormozi style" aria-pressed="false">
+                <div class="style-preview hormozi-preview">
+                  <span class="sp-word sp-purple">MAKE</span>
+                  <span class="sp-word sp-yellow hormozi-pop">MORE</span>
+                </div>
+                <div class="style-card-name">Hormozi</div>
+              </button>
+              <button class="style-card" data-style="garyvee" aria-label="Gary Vee style" aria-pressed="false">
+                <div class="style-preview garyvee-preview">
+                  <span class="sp-word sp-white gv-stamp">STOP</span>
+                  <span class="sp-word sp-orange">WAITING</span>
+                </div>
+                <div class="style-card-name">Gary Vee</div>
+              </button>
+              <button class="style-card" data-style="loganpaul" aria-label="Logan Paul style" aria-pressed="false">
+                <div class="style-preview loganpaul-preview">
+                  <span class="sp-word lp-text">THIS</span>
+                  <span class="sp-word lp-text lp-glow">HITS</span>
+                </div>
+                <div class="style-card-name">Logan Paul</div>
+              </button>
+              <button class="style-card" data-style="minimal" aria-label="Minimalist style" aria-pressed="false">
+                <div class="style-preview minimal-preview">
+                  <span class="sp-word min-text">simple.</span>
+                  <span class="sp-word min-text min-soft">clean.</span>
+                </div>
+                <div class="style-card-name">Minimal</div>
+              </button>
+              <button class="style-card" data-style="tiktok" aria-label="TikTok Pop style" aria-pressed="false">
+                <div class="style-preview tiktok-preview">
+                  <span class="sp-word tt-pop">🔥 HOT</span>
+                  <span class="sp-word tt-pop tt-scale">TAKE!</span>
+                </div>
+                <div class="style-card-name">TikTok Pop</div>
+              </button>
+              <button class="style-card" data-style="imangadzi" aria-label="Iman Gadzi style" aria-pressed="false">
+                <div class="style-preview imangadzi-preview">
+                  <span class="sp-word ig-gold">RICH</span>
+                  <span class="sp-word ig-white">MINDSET</span>
+                </div>
+                <div class="style-card-name">Iman Gadzi</div>
+              </button>
+              <button class="style-card" data-style="devinjatho" aria-label="Devin Jatho style" aria-pressed="false">
+                <div class="style-preview devinjatho-preview">
+                  <span class="sp-word dj-green">GRIND</span>
+                  <span class="sp-word dj-white">DAILY</span>
+                </div>
+                <div class="style-card-name">Devin Jatho</div>
+              </button>
+              <button class="style-card" data-style="karaoke" aria-label="Karaoke style" aria-pressed="false">
+                <div class="style-preview karaoke-preview">
+                  <span class="sp-word kk-dim">NEVER</span>
+                  <span class="sp-word kk-sweep">GIVE</span>
+                  <span class="sp-word kk-dim">UP</span>
+                </div>
+                <div class="style-card-name">Karaoke</div>
+              </button>
+              <button class="style-card" data-style="outlined" aria-label="Outlined style" aria-pressed="false">
+                <div class="style-preview outlined-preview">
+                  <span class="sp-word ol-text">BOLD</span>
+                  <span class="sp-word ol-text ol-hi">LINES</span>
+                </div>
+                <div class="style-card-name">Outlined</div>
+              </button>
+              <button class="style-card" data-style="gradient" aria-label="Gradient style" aria-pressed="false">
+                <div class="style-preview gradient-preview">
+                  <span class="sp-word gr-a">COLOR</span>
+                  <span class="sp-word gr-b">FLOW</span>
+                </div>
+                <div class="style-card-name">Gradient</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- ── Visual FX ── -->
+          <div class="field-group">
+            <p class="field-label" style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+              <span class="material-symbols-outlined" style="font-size:15px;color:#f472b6;font-variation-settings:'FILL' 1">auto_fix_high</span>
+              Visual FX
+            </p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div class="option-tile option-tile-row" style="background:rgba(234,179,8,0.06);border-color:rgba(234,179,8,0.2);">
+                <div>
+                  <p class="tile-title">⚡ Auto-Zoom</p>
+                  <p class="tile-sub">Punch-in at energy peaks</p>
+                </div>
+                <label class="toggle-switch" title="Enable dynamic auto-zoom">
+                  <input type="checkbox" id="auto-zoom-toggle"/>
+                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                </label>
+              </div>
+              <div class="option-tile option-tile-row" style="background:rgba(244,63,94,0.06);border-color:rgba(244,63,94,0.2);">
+                <div>
+                  <p class="tile-title">🔥 Emoji Burst</p>
+                  <p class="tile-sub">Keyword text overlays</p>
+                </div>
+                <label class="toggle-switch" title="Enable emoji burst animations">
+                  <input type="checkbox" id="emoji-burst-toggle"/>
+                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                </label>
+              </div>
+              <div class="option-tile option-tile-row" style="background:rgba(16,185,129,0.06);border-color:rgba(16,185,129,0.2);">
+                <div>
+                  <p class="tile-title">🎯 Face Tracker</p>
+                  <p class="tile-sub">Dynamic crop follows the face</p>
+                </div>
+                <label class="toggle-switch" title="OpenCV Haar cascade tracks face position every 1.5s and pans the crop to follow">
+                  <input type="checkbox" id="face-focus-toggle"/>
+                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                </label>
+              </div>
+              <div class="option-tile option-tile-row" style="background:rgba(139,92,246,0.06);border-color:rgba(139,92,246,0.2);">
+                <div>
+                  <p class="tile-title">🚀 Speed Ramp</p>
+                  <p class="tile-sub">1.35× on quiet sections</p>
+                </div>
+                <label class="toggle-switch" title="Automatically speed up low-energy moments">
+                  <input type="checkbox" id="speed-ramp-toggle"/>
+                  <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Brand Watermark ── -->
+          <div class="field-group" id="watermark-section">
+            <p class="field-label" style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+              <span class="material-symbols-outlined" style="font-size:15px;color:#38bdf8;font-variation-settings:'FILL' 1">branding_watermark</span>
+              Brand Watermark
+            </p>
+            <div class="logo-upload-area" id="logo-upload-area">
+              <input type="file" id="logo-file-input" accept=".png,.jpg,.jpeg,.webp" style="display:none"/>
+              <span class="material-symbols-outlined" style="font-size:28px;color:#4b5563;font-variation-settings:'FILL' 0">add_photo_alternate</span>
+              <p style="margin:6px 0 2px;font-size:12px;font-weight:600;color:#9ca3af;">Upload Logo</p>
+              <p style="font-size:11px;color:#6b7280;">PNG · JPG · WebP</p>
+            </div>
+            <div id="logo-controls" style="display:none;margin-top:10px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <img id="logo-preview-img" src="" alt="Logo preview" style="width:36px;height:36px;object-fit:contain;border-radius:6px;background:#1a1a2e;border:1px solid #2d2d42;"/>
+                <span id="logo-filename-label" style="font-size:11px;color:#9ca3af;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+                <button onclick="clearLogo()" style="font-size:11px;color:#ef4444;background:none;border:none;cursor:pointer;">Remove</button>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div>
+                  <p style="font-size:11px;color:#9ca3af;margin:0 0 5px;">Corner</p>
+                  <div class="corner-pills" id="corner-pills">
+                    <button class="corner-pill" data-corner="tl" title="Top Left">↖ TL</button>
+                    <button class="corner-pill active" data-corner="br" title="Bottom Right">↘ BR</button>
+                    <button class="corner-pill" data-corner="tr" title="Top Right">↗ TR</button>
+                    <button class="corner-pill" data-corner="bl" title="Bottom Left">↙ BL</button>
+                  </div>
+                </div>
+                <div>
+                  <p style="font-size:11px;color:#9ca3af;margin:0 0 5px;">Size</p>
+                  <div class="size-pills" id="size-pills">
+                    <button class="size-pill" data-size="small">S</button>
+                    <button class="size-pill active" data-size="medium">M</button>
+                    <button class="size-pill" data-size="large">L</button>
+                  </div>
+                </div>
+              </div>
+              <div style="margin-top:8px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                  <p style="font-size:11px;color:#9ca3af;margin:0;">Opacity</p>
+                  <span id="logo-opacity-label" style="font-size:11px;color:#c4b5fd;">80%</span>
+                </div>
+                <input type="range" id="logo-opacity" min="10" max="100" value="80" step="5"
+                  class="logo-opacity-slider"
+                  oninput="document.getElementById('logo-opacity-label').textContent=this.value+'%'"/>
+              </div>
+            </div>
+          </div>
+
+          <!-- Generate Button -->
+          <button id="generate-btn" class="btn-generate" aria-label="Generate Viral Shorts">
+            <span class="material-symbols-outlined" style="font-size:20px;font-variation-settings:'FILL' 1">bolt</span>
+            Generate Viral Shorts
+            <span class="btn-shimmer"></span>
+          </button>
+
+          <!-- Export Settings -->
+          <div class="export-settings">
+            <div class="export-settings-label">
+              <span class="material-symbols-outlined" style="font-size:14px;">download</span>
+              Export Settings
+            </div>
+            <div class="export-dropdowns">
+              <div class="export-dropdown-group">
+                <label class="field-label" for="res-select">Resolution</label>
+                <div class="select-wrapper">
+                  <select id="res-select" class="export-select" aria-label="Video Resolution">
+                    <option value="480p">480p – SD</option>
+                    <option value="720p" selected>720p – HD</option>
+                    <option value="1080p">1080p – Full HD</option>
+                    <option value="4k">4K – Ultra HD</option>
+                  </select>
+                  <span class="select-arrow">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  </span>
+                </div>
+              </div>
+              <div class="export-dropdown-group">
+                <label class="field-label" for="fmt-select">Format</label>
+                <div class="select-wrapper">
+                  <select id="fmt-select" class="export-select" aria-label="Export Format">
+                    <option value="mp4" selected>MP4</option>
+                    <option value="mov">MOV</option>
+                    <option value="webm">WebM</option>
+                  </select>
+                  <span class="select-arrow">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /glass-card -->
+
+        <!-- RIGHT: Feature Tiles -->
+        <div class="feature-tiles">
+          <div class="feature-tile" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform=''">
+            <div class="feature-icon" style="background:rgba(255,186,32,0.1);border-color:rgba(255,186,32,0.25);box-shadow:inset 0 0 10px rgba(255,186,32,0.15);">
+              <span class="material-symbols-outlined" style="color:#ffba20;font-variation-settings:'FILL' 1">speed</span>
+            </div>
+            <div><p class="feature-title">10x Faster</p><p class="feature-sub">Instant transcript detection</p></div>
+          </div>
+          <div class="feature-tile" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform=''">
+            <div class="feature-icon" style="background:rgba(139,92,246,0.1);border-color:rgba(139,92,246,0.25);box-shadow:inset 0 0 10px rgba(139,92,246,0.15);">
+              <span class="material-symbols-outlined" style="color:#d0bcff;font-variation-settings:'FILL' 1">crop_portrait</span>
+            </div>
+            <div><p class="feature-title">9:16 Format</p><p class="feature-sub">Perfect for TikTok / Reels</p></div>
+          </div>
+          <div class="feature-tile" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform=''">
+            <div class="feature-icon" style="background:rgba(14,165,233,0.1);border-color:rgba(14,165,233,0.25);box-shadow:inset 0 0 10px rgba(14,165,233,0.1);">
+              <span class="material-symbols-outlined" style="color:#c4e4ff;font-variation-settings:'FILL' 1">psychology</span>
+            </div>
+            <div><p class="feature-title">AI Hook Detection</p><p class="feature-sub">Finds the most engaging parts</p></div>
+          </div>
+          <div class="feature-tile" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform=''">
+            <div class="feature-icon" style="background:rgba(255,255,255,0.04);border-color:rgba(158,143,120,0.2);">
+              <span class="material-symbols-outlined" style="color:#9e8f78;font-variation-settings:'FILL' 1">closed_caption</span>
+            </div>
+            <div><p class="feature-title">CC Auto Captions</p><p class="feature-sub">High-accuracy transcription</p></div>
+          </div>
+        </div>
+      </div><!-- /studio-layout -->
+    </section><!-- /screen-input -->
+
+    <!-- ── SCREEN: LOADING ── -->
+    <section id="screen-loading" class="screen loading-screen">
+      <div class="loading-inner">
+        <!-- Brand -->
+        <div class="loading-brand">
+          <h1>Voxly</h1>
+          <p>Processing Cinematic Render</p>
+        </div>
+
+        <!-- SVG Ring -->
+        <div class="ring-wrap">
+          <div class="ring-glow"></div>
+          <svg width="200" height="200" viewBox="0 0 140 140" style="transform:rotate(-90deg)">
+            <circle cx="70" cy="70" r="60" fill="none" stroke="#30291e" stroke-width="4"/>
+            <circle id="ring-circle" cx="70" cy="70" r="60" fill="none"
+              stroke="url(#ringGrad)" stroke-width="6" stroke-linecap="round"
+              style="stroke-dasharray:377;stroke-dashoffset:377;transition:stroke-dashoffset 0.8s ease;"/>
+            <defs>
+              <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#8B5CF6"/>
+                <stop offset="100%" stop-color="#d0bcff"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="ring-center glass-panel">
+            <span id="ring-pct" class="ring-pct">0<span class="ring-pct-unit">%</span></span>
+            <span class="ring-label">Rendering</span>
+          </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="progress-track">
+          <div id="progress-bar" class="progress-fill"></div>
+        </div>
+
+        <!-- Steps -->
+        <div class="glass-panel steps-panel">
+          <div id="step-1" class="step-item">
+            <div class="step-icon-wrap">
+              <div class="step-check"><span class="material-symbols-outlined">check</span></div>
+              <div class="step-dot"></div>
+            </div>
+            <div>
+              <p class="step-text">Fetching video metadata</p>
+              <p class="step-sub">Analyzing source content</p>
+            </div>
+          </div>
+          <div id="step-2" class="step-item">
+            <div class="step-icon-wrap">
+              <div class="step-check"><span class="material-symbols-outlined">check</span></div>
+              <div class="step-dot"></div>
+            </div>
+            <div>
+              <p class="step-text">Analyzing viral hooks</p>
+              <p class="step-sub">Detecting high-energy segments</p>
+            </div>
+          </div>
+          <div id="step-3" class="step-item">
+            <div class="step-icon-wrap">
+              <div class="step-check"><span class="material-symbols-outlined">check</span></div>
+              <div class="step-dot"></div>
+            </div>
+            <div>
+              <p class="step-text">Clipping &amp; formatting</p>
+              <p class="step-sub">Applying cinematic styling</p>
+            </div>
+          </div>
+          <div id="step-4" class="step-item">
+            <div class="step-icon-wrap">
+              <div class="step-check"><span class="material-symbols-outlined">check</span></div>
+              <div class="step-dot"></div>
+            </div>
+            <div>
+              <p class="step-text">Rendering shorts</p>
+              <p class="step-sub">Finalizing export</p>
+            </div>
+          </div>
+        </div>
+
+        <p id="loading-message" class="loading-message-text"></p>
+      </div>
+    </section><!-- /screen-loading -->
+
+    <!-- ── SCREEN: RESULTS ── -->
+    <section id="screen-results" class="screen results-screen">
+      <div class="results-header-bar">
+        <div>
+          <h1 class="results-headline">AI Results</h1>
+          <p class="results-sub"><span id="results-count">0</span> clips generated and ready to post</p>
+          <div id="results-loading-badge" class="results-badge">
+            <div class="results-badge-dot"></div>
+            Rendering clips…
+          </div>
+        </div>
+        <button id="new-video-btn" class="btn-ghost-glass">
+          <span class="material-symbols-outlined" style="font-size:18px;">add_circle</span>
+          New Video
+        </button>
+      </div>
+      <div id="results-gallery" class="results-grid"></div>
+    </section><!-- /screen-results -->
+
+    <!-- ── SCREEN: ERROR ── -->
+    <section id="screen-error" class="screen error-screen">
+      <div class="error-icon-wrap">
+        <span class="material-symbols-outlined" style="color:#ffb4ab;font-size:38px;font-variation-settings:'FILL' 1">error</span>
+      </div>
+      <h2 class="error-title">Something went wrong</h2>
+      <p id="error-message" class="error-msg"></p>
+      <button id="retry-btn" class="btn-generate" style="width:auto;padding:14px 32px;">
+        <span class="material-symbols-outlined" style="font-size:18px;">refresh</span>
+        Try Again
+        <span class="btn-shimmer"></span>
+      </button>
+    </section><!-- /screen-error -->
+
+  </div><!-- /tab-studio -->
+
+
+  <!-- ════════════════════════════════
+       TAB: DASHBOARD
+  ════════════════════════════════ -->
+  <div id="tab-dashboard" class="tab-panel">
+    <header class="top-bar">
+      <div class="top-bar-title">
+        <span class="material-symbols-outlined" style="color:#fbbf24;font-size:28px;font-variation-settings:'FILL' 1">play_circle</span>
+        <span>Creator Dashboard</span>
+      </div>
+    </header>
+    <div style="padding:0 40px 80px;">
+      <div class="page-heading" style="margin-bottom:40px;">
+        <h1 style="text-shadow:0 0 30px rgba(255,186,32,0.2);">Welcome back, <span class="text-amber-grad">Creator.</span></h1>
+        <p>Here is the performance of your AI generated content today.</p>
+      </div>
+
+      <!-- Metrics -->
+      <div class="metrics-grid">
+        <div class="glass-panel metric-card" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform=''">
+          <div class="metric-header">
+            <span class="metric-label">Videos Processed</span>
+            <div class="metric-icon" style="background:rgba(87,27,193,0.15);border-color:rgba(208,188,255,0.2);">
+              <span class="material-symbols-outlined" style="font-size:16px;color:#d0bcff;">movie</span>
+            </div>
+          </div>
+          <div class="metric-value-row">
+            <span id="stat-videos" class="metric-value" style="color:#ffba20;">0</span>
+            <span class="metric-badge">+12%</span>
+          </div>
+          <p class="metric-sub">Total videos analyzed</p>
+        </div>
+
+        <div class="glass-panel metric-card" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform=''">
+          <div class="metric-header">
+            <span class="metric-label">Total Clips Created</span>
+            <div class="metric-icon" style="background:rgba(14,165,233,0.12);border-color:rgba(196,228,255,0.2);">
+              <span class="material-symbols-outlined" style="font-size:16px;color:#c4e4ff;">content_cut</span>
+            </div>
+          </div>
+          <span id="stat-clips" class="metric-value">0</span>
+          <div class="sparkline">
+            <div style="height:30%;background:rgba(196,228,255,0.15);"></div>
+            <div style="height:45%;background:rgba(196,228,255,0.25);"></div>
+            <div style="height:25%;background:rgba(196,228,255,0.35);"></div>
+            <div style="height:60%;background:rgba(196,228,255,0.5);"></div>
+            <div style="height:40%;background:rgba(196,228,255,0.7);"></div>
+            <div style="height:100%;background:#c4e4ff;box-shadow:0 0 8px rgba(196,228,255,0.4);"></div>
+          </div>
+        </div>
+
+        <div class="glass-panel metric-card" style="position:relative;overflow:hidden;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform=''">
+          <div style="position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:rgba(255,186,32,0.12);border-radius:50%;filter:blur(20px);pointer-events:none;"></div>
+          <div class="metric-header" style="position:relative;z-index:1;">
+            <span class="metric-label">Hours Saved</span>
+            <div class="metric-icon" style="background:rgba(255,186,32,0.12);border-color:rgba(255,220,161,0.2);">
+              <span class="material-symbols-outlined" style="font-size:16px;color:#ffdca1;">schedule</span>
+            </div>
+          </div>
+          <span id="stat-hours" class="metric-value" style="position:relative;z-index:1;">0h</span>
+          <p class="metric-sub" style="position:relative;z-index:1;">Est. manual editing time saved</p>
+        </div>
+      </div>
+
+      <!-- Pro Tips -->
+      <h2 class="section-heading">Pro Tips</h2>
+      <div class="tips-grid">
+        <div class="glass-panel tip-card">
+          <div class="tip-icon" style="background:rgba(87,27,193,0.12);">
+            <span class="material-symbols-outlined" style="color:#d0bcff;font-size:24px;font-variation-settings:'FILL' 1">auto_awesome</span>
+          </div>
+          <h4 class="tip-title">Optimize B-Roll Prompts</h4>
+          <p class="tip-body">Write more descriptive prompts to generate cinematic background footage for your shorts.</p>
+        </div>
+        <div class="glass-panel tip-card">
+          <div class="tip-icon" style="background:rgba(14,165,233,0.12);">
+            <span class="material-symbols-outlined" style="color:#c4e4ff;font-size:24px;font-variation-settings:'FILL' 1">graphic_eq</span>
+          </div>
+          <h4 class="tip-title">Audio Ducking Automation</h4>
+          <p class="tip-body">Set up smart audio rules so background music automatically lowers when speech is detected.</p>
+        </div>
+        <div class="glass-panel tip-card">
+          <div class="tip-icon" style="background:rgba(255,186,32,0.08);">
+            <span class="material-symbols-outlined" style="color:#ffdca1;font-size:24px;font-variation-settings:'FILL' 1">closed_caption</span>
+          </div>
+          <h4 class="tip-title">Dynamic Captions</h4>
+          <p class="tip-body">Apply kinetic typography templates to boost engagement on your auto-generated captions.</p>
+        </div>
+      </div>
+    </div>
+  </div><!-- /tab-dashboard -->
+
+
+  <!-- ════════════════════════════════
+       TAB: HISTORY
+  ════════════════════════════════ -->
+  <div id="tab-history" class="tab-panel">
+    <header class="top-bar">
+      <div class="top-bar-title">
+        <span class="material-symbols-outlined" style="color:#fbbf24;font-size:28px;font-variation-settings:'FILL' 1">play_circle</span>
+        <span>History</span>
+      </div>
+    </header>
+    <div style="padding:0 40px 80px;">
+      <div class="page-heading" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+        <div>
+          <h1>Recent <span class="text-amber-grad">Sessions</span></h1>
+          <p>Your previously generated Shorts are saved here.</p>
+        </div>
+        <button id="clear-history-btn" class="btn-ghost-glass" style="margin-top:8px;">
+          <span class="material-symbols-outlined" style="font-size:18px;">delete_sweep</span>
+          Clear History
+        </button>
+      </div>
+      <div id="history-container"></div>
+      <div id="history-empty" class="history-empty">
+        <div class="history-empty-icon">
+          <span class="material-symbols-outlined" style="font-size:36px;color:#9e8f78;font-variation-settings:'FILL' 1">history</span>
+        </div>
+        <p class="history-empty-title">No history yet</p>
+        <p class="history-empty-sub">Your generated sessions will appear here.</p>
+      </div>
+    </div>
+  </div><!-- /tab-history -->
+
+</div><!-- /main-wrap -->
+
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     COOKIE PANEL MODAL
+══════════════════════════════════════════════════════════════════════ -->
+<div id="cookie-panel-modal" style="display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);align-items:center;justify-content:center;">
+  <div class="glass-card" style="width:min(520px,92vw);border-radius:20px;padding:32px;position:relative;">
+    <button onclick="document.getElementById('cookie-panel-modal').style.display='none'" style="position:absolute;top:16px;right:16px;background:transparent;border:none;cursor:pointer;color:#9e8f78;" onmouseover="this.style.color='#ede1d0'" onmouseout="this.style.color='#9e8f78'">
+      <span class="material-symbols-outlined" style="font-size:22px;">close</span>
+    </button>
+    <h3 style="font-size:20px;font-weight:800;color:#ede1d0;margin-bottom:8px;">YouTube Cookies</h3>
+    <p style="font-size:14px;color:#d5c4ab;line-height:1.6;margin-bottom:20px;">Some private or age-restricted videos require cookies for download. Upload your <code style="background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;font-size:12px;">cookies.txt</code> file (Netscape format) to enable access.</p>
+    <div id="cookie-upload-area" style="border:2px dashed rgba(139,92,246,0.3);border-radius:12px;padding:32px;text-align:center;background:rgba(87,27,193,0.05);cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='rgba(139,92,246,0.6)'" onmouseout="this.style.borderColor='rgba(139,92,246,0.3)'">
+      <span class="material-symbols-outlined" style="font-size:32px;color:#d0bcff;margin-bottom:8px;display:block;font-variation-settings:'FILL' 1">upload_file</span>
+      <p style="font-size:14px;color:#d5c4ab;margin-bottom:4px;">Drop cookies.txt here or click to upload</p>
+      <p style="font-size:12px;color:#9e8f78;">Netscape HTTP Cookie File format</p>
+      <input type="file" id="cookie-file-input" accept=".txt" style="display:none"/>
+    </div>
+    <div id="cookie-status-msg" style="margin-top:14px;font-size:13px;color:#9e8f78;"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     SEGMENT 5: CAPTION CUSTOMIZER MODAL
+══════════════════════════════════════════════════════════════════════ -->
+<div id="caption-customizer-modal" style="display:none;position:fixed;inset:0;z-index:120;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);align-items:center;justify-content:center;">
+  <div class="glass-card customizer-card">
+    <button class="modal-close-btn" onclick="document.getElementById('caption-customizer-modal').style.display='none'">
+      <span class="material-symbols-outlined" style="font-size:22px;">close</span>
+    </button>
+    <h3 class="modal-title">
+      <span class="material-symbols-outlined" style="font-size:20px;color:#fbbf24;font-variation-settings:'FILL' 1">tune</span>
+      Caption Customizer
+    </h3>
+    <p style="font-size:13px;color:#9e8f78;margin-bottom:20px;">Override the caption style for your generated clips.</p>
+
+    <div class="customizer-grid">
+      <div class="cust-field">
+        <label class="cust-label">Font Family</label>
+        <div class="select-wrapper"><select id="cust-font" class="export-select">
+          <option value="">— Use style default —</option>
+          <option value="Impact">Impact</option>
+          <option value="Arial Black">Arial Black</option>
+          <option value="Poppins">Poppins</option>
+          <option value="Inter">Inter</option>
+          <option value="Montserrat">Montserrat</option>
+          <option value="Oswald">Oswald</option>
+        </select><span class="select-arrow"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></span></div>
+      </div>
+
+      <div class="cust-field" style="grid-column:1/-1;">
+        <label class="cust-label">Upload Custom Font <span style="font-size:11px;color:#9e8f78;">(TTF / OTF)</span></label>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <div id="font-upload-zone" style="display:flex;align-items:center;gap:8px;padding:10px 16px;border:1.5px dashed rgba(139,92,246,0.35);border-radius:10px;cursor:pointer;background:rgba(87,27,193,0.05);transition:all 0.2s;flex:1;min-width:180px;" onmouseover="this.style.borderColor='rgba(139,92,246,0.7)'" onmouseout="this.style.borderColor='rgba(139,92,246,0.35)'">
+            <span class="material-symbols-outlined" style="font-size:18px;color:#d0bcff;font-variation-settings:'FILL' 1">font_download</span>
+            <span id="font-upload-label" style="font-size:13px;color:#9e8f78;">Drop .ttf / .otf or click to upload</span>
+            <input type="file" id="font-file-input" accept=".ttf,.otf,.woff" style="display:none"/>
+          </div>
+          <span id="font-status-text" style="font-size:12px;color:#34d399;display:none;white-space:nowrap;"></span>
+        </div>
+      </div>
+
+      <div class="cust-field">
+        <label class="cust-label">Font Size <span id="cust-size-val" style="color:#fbbf24;"></span></label>
+        <input type="range" id="cust-size" min="60" max="160" value="110" class="cust-range"/>
+      </div>
+
+      <div class="cust-field">
+        <label class="cust-label">Words per Line</label>
+        <div class="pill-radio-wrap">
+          <input type="radio" name="cust-wpl" id="wpl-2" value="2"/><label for="wpl-2">2</label>
+          <input type="radio" name="cust-wpl" id="wpl-3" value="3" checked/><label for="wpl-3">3</label>
+          <input type="radio" name="cust-wpl" id="wpl-4" value="4"/><label for="wpl-4">4</label>
+          <input type="radio" name="cust-wpl" id="wpl-5" value="5"/><label for="wpl-5">5</label>
+        </div>
+      </div>
+
+      <div class="cust-field">
+        <label class="cust-label">Position</label>
+        <div class="pill-radio-wrap">
+          <input type="radio" name="cust-pos" id="pos-top" value="top"/><label for="pos-top">Top</label>
+          <input type="radio" name="cust-pos" id="pos-mid" value="bottom" checked/><label for="pos-mid">Bottom</label>
+          <input type="radio" name="cust-pos" id="pos-cen" value="center"/><label for="pos-cen">Center</label>
+        </div>
+      </div>
+
+      <div class="cust-field">
+        <label class="cust-label">Text Color</label>
+        <div class="color-picker-row">
+          <input type="color" id="cust-primary-color" value="#ffffff" class="cust-color-input"/>
+          <span class="cust-color-label">Primary</span>
+          <input type="color" id="cust-highlight-color" value="#ffff00" class="cust-color-input"/>
+          <span class="cust-color-label">Highlight</span>
+          <input type="color" id="cust-outline-color" value="#000000" class="cust-color-input"/>
+          <span class="cust-color-label">Outline</span>
+        </div>
+      </div>
+
+      <div class="cust-field">
+        <label class="cust-label">Outline Width <span id="cust-outline-val" style="color:#fbbf24;"></span></label>
+        <input type="range" id="cust-outline-width" min="0" max="8" value="3" class="cust-range"/>
+      </div>
+
+      <div class="cust-field">
+        <label class="cust-label" style="display:flex;align-items:center;gap:8px;">
+          UPPERCASE Text
+          <label class="toggle-switch" style="margin:0;">
+            <input type="checkbox" id="cust-uppercase" checked/>
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+        </label>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;margin-top:24px;">
+      <button id="cust-reset-btn" class="btn-ghost-glass" style="flex:1;">
+        <span class="material-symbols-outlined" style="font-size:16px;">restart_alt</span>
+        Reset
+      </button>
+      <button id="cust-apply-btn" class="btn-generate" style="flex:2;padding:12px 20px;">
+        <span class="material-symbols-outlined" style="font-size:18px;font-variation-settings:'FILL' 1">check_circle</span>
+        Apply Custom Style
+        <span class="btn-shimmer"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     SEGMENT 4: CAPTION EDITOR MODAL
+══════════════════════════════════════════════════════════════════════ -->
+<div id="caption-editor-modal" style="display:none;position:fixed;inset:0;z-index:120;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);align-items:center;justify-content:center;">
+  <div class="glass-card" style="width:min(700px,94vw);max-height:88vh;border-radius:20px;padding:28px;display:flex;flex-direction:column;gap:16px;position:relative;overflow:hidden;">
+    <button class="modal-close-btn" onclick="document.getElementById('caption-editor-modal').style.display='none'">
+      <span class="material-symbols-outlined" style="font-size:22px;">close</span>
+    </button>
+    <div>
+      <h3 class="modal-title">
+        <span class="material-symbols-outlined" style="font-size:20px;color:#fbbf24;font-variation-settings:'FILL' 1">edit_note</span>
+        Caption Editor
+      </h3>
+      <p style="font-size:13px;color:#9e8f78;">Click any word to edit it. Changes will be re-burned into a new clip.</p>
+    </div>
+    <div id="caption-editor-words" class="caption-editor-words"></div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <button id="caption-editor-cancel" class="btn-ghost-glass" style="flex:1;min-width:120px;" onclick="document.getElementById('caption-editor-modal').style.display='none'">
+        <span class="material-symbols-outlined" style="font-size:16px;">close</span> Cancel
+      </button>
+      <button id="caption-editor-rebake" class="btn-generate" style="flex:2;min-width:180px;padding:12px 20px;">
+        <span class="material-symbols-outlined" style="font-size:18px;font-variation-settings:'FILL' 1">movie_edit</span>
+        Re-bake Captions
+        <span class="btn-shimmer"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Progress ring sync
+document.addEventListener('DOMContentLoaded', () => {
+  const pb = document.getElementById('progress-bar');
+  const ring = document.getElementById('ring-circle');
+  const pctEl = document.getElementById('ring-pct');
+  if (!pb || !ring) return;
+  const obs = new MutationObserver(() => {
+    const pct = parseFloat(pb.style.width) || 0;
+    const circ = 377;
+    ring.style.strokeDashoffset = circ - (circ * pct / 100);
+    if (pctEl) pctEl.innerHTML = Math.round(pct) + '<span class="ring-pct-unit">%</span>';
+  });
+  obs.observe(pb, { attributes: true, attributeFilter: ['style'] });
+
+  // Cookie file upload
+  const area = document.getElementById('cookie-upload-area');
+  const input = document.getElementById('cookie-file-input');
+  const msg = document.getElementById('cookie-status-msg');
+  if (area && input) {
+    area.addEventListener('click', () => input.click());
+    input.addEventListener('change', async () => {
+      if (!input.files[0]) return;
+      const fd = new FormData();
+      fd.append('cookies', input.files[0]);
+      try {
+        const r = await fetch('/api/upload-cookies', { method: 'POST', body: fd });
+        const d = await r.json();
+        if (d.ok) {
+          msg.style.color = '#34d399';
+          msg.textContent = 'Cookies uploaded successfully!';
+          document.getElementById('cookie-badge-dot').style.background = '#22c55e';
+          document.getElementById('cookie-badge-dot').style.boxShadow = '0 0 6px #22c55e';
+          document.getElementById('cookie-badge-text').textContent = 'Cookies Active';
+          setTimeout(() => document.getElementById('cookie-panel-modal').style.display = 'none', 1200);
+        } else {
+          msg.style.color = '#ffb4ab';
+          msg.textContent = 'Upload failed: ' + (d.error || 'Unknown error');
+        }
+      } catch {
+        msg.style.color = '#ffb4ab';
+        msg.textContent = 'Upload failed – is the server running?';
+      }
+    });
+    area.addEventListener('dragover', e => { e.preventDefault(); area.style.borderColor = 'rgba(139,92,246,0.8)'; });
+    area.addEventListener('dragleave', () => { area.style.borderColor = 'rgba(139,92,246,0.3)'; });
+    area.addEventListener('drop', e => {
+      e.preventDefault();
+      area.style.borderColor = 'rgba(139,92,246,0.3)';
+      const file = e.dataTransfer.files[0];
+      if (file) { const dt = new DataTransfer(); dt.items.add(file); input.files = dt.files; input.dispatchEvent(new Event('change')); }
+    });
+  }
+
+  // Check cookie status on load
+  fetch('/api/cookie-status').then(r => r.json()).then(d => {
+    if (d.active) {
+      document.getElementById('cookie-badge-dot').style.background = '#22c55e';
+      document.getElementById('cookie-badge-dot').style.boxShadow = '0 0 6px #22c55e';
+      document.getElementById('cookie-badge-text').textContent = 'Cookies Active';
+    }
+  }).catch(() => {});
+});
+</script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+# Generated / runtime
+clips/
+uploads/
+downloads/
+__pycache__/
+*.pyc
+cookies.txt
+fonts/
+node_modules/
+dist/
+.env

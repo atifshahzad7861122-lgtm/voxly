@@ -136,8 +136,8 @@ async function callBackend(youtubeUrl, { onTotal, onClip }) {
   const captionsEl = document.querySelector('input[name="auto-captions"]:checked');
   const captions = captionsEl ? (captionsEl.value === 'true') : true;
 
-  const geminiKeyEl = document.getElementById('gemini-key-input');
-  const geminiKey = geminiKeyEl ? geminiKeyEl.value.trim() : '';
+  const groqKeyEl = document.getElementById('groq-key-input');
+  const groqKey = groqKeyEl ? groqKeyEl.value.trim() : '';
 
   const captionStyle = (typeof window.getSelectedCaptionStyle === 'function') ? window.getSelectedCaptionStyle() : 'mrbeast';
 
@@ -167,17 +167,22 @@ async function callBackend(youtubeUrl, { onTotal, onClip }) {
   // Segment 5 – custom style
   const customStyle = (typeof window.getCustomStyle === 'function') ? window.getCustomStyle() : null;
 
+  const resolution   = document.getElementById('res-select')?.value || '1080p';
+  const exportFormat = document.getElementById('fmt-select')?.value || 'mp4';
+
   const payload = {
     youtubeUrl: sourceType === 'youtube' ? youtubeUrl : '',
     sourceType,
     mode, duration, captions, captionStyle, language, audioEnhance, brollEnabled,
     colorGrade, autoZoom, emojiBurst, faceFocus, speedRamp,
+    resolution,
+    export_format: exportFormat,
   };
   if (logoConfig) payload.logoConfig = logoConfig;
   if (sourceType === 'upload') payload.uploadFile = window._uploadedFilename || '';
   if (customStyle) payload.customStyle = customStyle;
   if (clipsCount !== null) payload.clips = clipsCount;
-  if (geminiKey) payload.geminiKey = geminiKey;
+  if (groqKey) payload.groqKey = groqKey;
 
   let response;
   try {
@@ -209,17 +214,28 @@ async function callBackend(youtubeUrl, { onTotal, onClip }) {
       let msg;
       try { msg = JSON.parse(line); } catch { continue; }
 
+      if (msg.type === 'clip_error') {
+        const errorCard = renderErrorCard(msg);
+        resultsGallery.appendChild(errorCard);
+        continue;
+      }
       if (msg.error) throw new Error(msg.error);
       if (msg.total !== undefined) await onTotal(msg.total);
       if (msg.clip !== undefined) await onClip(msg.clip, msg.index, msg.hooks, msg.hasSrt, msg.hasRawAudio, msg.hasAlpha, msg.viralScore ?? null, msg.brollCount ?? 0, msg.hasThumbnail ?? false);
       if (msg.thumbReady) {
+        console.log(`[Frontend] thumbReady received for clip ${msg.index}`);
         const card = document.querySelector(`[data-clip-index="${msg.index}"]`);
         if (card) {
           const video = card.querySelector('video');
           const thumbUrl = video?.src?.replace('.mp4', '_thumb.jpg');
           if (video && thumbUrl) video.setAttribute('poster', thumbUrl);
           const btn = card.querySelector('.thumb-dl-btn');
-          if (btn) btn.style.display = '';
+          if (btn) {
+            console.log(`[Frontend] Showing thumbnail button for card ${msg.index}`);
+            btn.style.display = '';
+          }
+        } else {
+          console.warn(`[Frontend] Received thumbReady for ${msg.index} but card not found!`);
         }
       }
       // msg.warning is silently ignored (non-fatal)
@@ -227,7 +243,78 @@ async function callBackend(youtubeUrl, { onTotal, onClip }) {
   }
 }
 
+// ─── Chapters Caching & Utilities ─────────────────────────────────────────────
+const CHAPTERS_CACHE = new Map();
+
+window.toggleChapters = function(filename) {
+  const panel = document.getElementById(`chapters-${filename}`);
+  if (!panel) return;
+  const list = document.getElementById(`chapters-list-${filename}`);
+  const toggleBtn = panel.querySelector('.chapters-toggle');
+  if (!list) return;
+  const isHidden = list.style.display === 'none';
+  list.style.display = isHidden ? 'block' : 'none';
+  if (toggleBtn) {
+    toggleBtn.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+  }
+};
+
+window.renderChapterMarkers = function(filename, chapters, videoDuration) {
+  const progressBar = document.querySelector(
+    `.progress-bar[data-filename="${filename}"]`
+  );
+  if (!progressBar) return;
+  
+  // Clear old markers first
+  progressBar.querySelectorAll('.chapter-marker').forEach(m => m.remove());
+
+  chapters.forEach(ch => {
+    const marker = document.createElement('div');
+    marker.className = 'chapter-marker';
+    const start = ch.start !== undefined ? ch.start : ch.time;
+    marker.style.left = `${(start / videoDuration) * 100}%`;
+    marker.title = ch.label;
+    
+    // Clicking a marker seeks the video directly
+    marker.addEventListener('click', (e) => {
+      e.stopPropagation(); // prevent progress bar click trigger
+      const video = progressBar.closest('.video-card').querySelector('video');
+      if (video) {
+        video.currentTime = start;
+        video.play().catch(() => {});
+      }
+    });
+    
+    progressBar.appendChild(marker);
+  });
+};
+
 // ─── Gallery Rendering ────────────────────────────────────────────────────────
+function renderErrorCard(errorData) {
+  const card = document.createElement('article');
+  card.className = 'video-card clip-card--error';
+  
+  card.innerHTML = `
+    <div class="video-preview error-preview">
+      <div class="error-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+      </div>
+      <p class="error-title">Clip ${errorData.index + 1} Failed</p>
+    </div>
+    <div class="video-info">
+      <p class="error-detail">${errorData.error || 'An unexpected error occurred during generation.'}</p>
+      <div class="video-actions">
+        <button class="btn secondary outline" onclick="alert('Retry for individual clips coming soon!')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Retry Clip
+        </button>
+      </div>
+    </div>
+  `;
+  return card;
+}
+
+
 function renderGallery(videoUrls) {
   resultsGallery.innerHTML = '';
   resultsCount.textContent = videoUrls.length;
@@ -246,6 +333,30 @@ function createVideoCard(url, index, hooks = [], hasSrt = false, hasRawAudio = f
   card.setAttribute('data-clip-index', index - 1);
 
   const thumbUrl = url.replace('.mp4', '_thumb.jpg');
+  const filename = url.split('/').pop();
+
+  // ── Custom Interactive Progress Bar (Timeline) ───────────────────────────
+  const progressBar = document.createElement('div');
+  progressBar.className = 'progress-bar';
+  progressBar.setAttribute('data-filename', filename);
+  
+  const progressFill = document.createElement('div');
+  progressFill.className = 'progress-fill';
+  progressBar.appendChild(progressFill);
+
+  video.addEventListener('timeupdate', () => {
+    const dur = video.duration || 0;
+    if (dur > 0) {
+      const pct = (video.currentTime / dur) * 100;
+      progressFill.style.width = pct + '%';
+    }
+  });
+
+  progressBar.addEventListener('click', (e) => {
+    const rect = progressBar.getBoundingClientRect();
+    const pos = (e.clientX - rect.left) / rect.width;
+    video.currentTime = pos * (video.duration || 0);
+  });
 
   const videoWrapper = document.createElement('div');
   videoWrapper.className = 'video-wrapper';
@@ -553,6 +664,7 @@ function createVideoCard(url, index, hooks = [], hasSrt = false, hasRawAudio = f
   footer.appendChild(editBtn);
 
   card.appendChild(videoWrapper);
+  card.appendChild(progressBar);
 
   // Feature: Before/After Audio Comparison (shown when audio enhancement was used)
   if (hasRawAudio) {
@@ -678,7 +790,67 @@ function createVideoCard(url, index, hooks = [], hasSrt = false, hasRawAudio = f
 
   const chaptersPanel = document.createElement('div');
   chaptersPanel.className = 'chapters-panel';
+  chaptersPanel.id = `chapters-${filename}`;
   chaptersPanel.style.display = 'none';
+
+  const chaptersHeader = document.createElement('div');
+  chaptersHeader.className = 'chapters-header';
+  chaptersHeader.innerHTML = `
+    <span class="chapters-icon">📖</span>
+    <span style="font-weight:700;font-size:13px;color:#ede1d0;margin-left:6px;">Chapters</span>
+    <button class="chapters-toggle" onclick="window.toggleChapters('${filename}')" style="margin-left:auto;background:none;border:none;color:#9e8f78;cursor:pointer;font-size:14px;transition:transform 0.2s;">▼</button>
+  `;
+  chaptersPanel.appendChild(chaptersHeader);
+
+  const chaptersList = document.createElement('div');
+  chaptersList.className = 'chapters-list';
+  chaptersList.id = `chapters-list-${filename}`;
+  chaptersPanel.appendChild(chaptersList);
+
+  function renderChaptersUI(chapters) {
+    chaptersList.innerHTML = '';
+    if (chapters.length === 0) {
+      chaptersList.innerHTML = '<p class="chapters-empty">No distinct scene cuts detected.</p>';
+      return;
+    }
+
+    const list = document.createElement('ul');
+    list.className = 'chapters-list-items';
+    list.style.cssText = 'list-style:none;padding:0;margin:0;';
+    
+    chapters.forEach((ch, i) => {
+      const start = ch.start !== undefined ? ch.start : ch.time;
+      const item = document.createElement('li');
+      item.className = 'chapter-item';
+      
+      const mins = Math.floor(start / 60);
+      const secs = (start % 60).toFixed(1).padStart(4, '0');
+      
+      item.innerHTML = `
+        <span class="chapter-number">${i + 1}</span>
+        <span class="chapter-time">${mins}:${secs}</span>
+        <span class="chapter-label">${ch.label}</span>
+      `;
+      
+      item.addEventListener('click', () => {
+        video.currentTime = start;
+        video.play().catch(() => {});
+      });
+      
+      list.appendChild(item);
+    });
+    chaptersList.appendChild(list);
+
+    // Render chapter markers on timeline
+    const duration = video.duration || 100;
+    if (duration > 0) {
+      window.renderChapterMarkers(filename, chapters, duration);
+    } else {
+      video.addEventListener('loadedmetadata', () => {
+        window.renderChapterMarkers(filename, chapters, video.duration);
+      }, { once: true });
+    }
+  }
 
   chaptersBtn.addEventListener('click', async () => {
     const open = chaptersPanel.style.display !== 'none';
@@ -687,31 +859,26 @@ function createVideoCard(url, index, hooks = [], hasSrt = false, hasRawAudio = f
       chaptersBtn.querySelector('.dl-label').textContent = 'Chapters';
       return;
     }
+
+    // Check cache first!
+    if (CHAPTERS_CACHE.has(filename)) {
+      renderChaptersUI(CHAPTERS_CACHE.get(filename));
+      chaptersPanel.style.display = 'block';
+      chaptersBtn.querySelector('.dl-label').textContent = 'Close';
+      return;
+    }
+
     chaptersBtn.querySelector('.dl-label').textContent = 'Detecting…';
     chaptersBtn.disabled = true;
-    const filename = url.split('/').pop();
     try {
       const res = await fetch(`/api/chapters/${filename}`);
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || 'Chapter detection failed'); }
       const data = await res.json();
       const chapters = data.chapters || [];
-      chaptersPanel.innerHTML = '';
-      if (chapters.length === 0) {
-        chaptersPanel.innerHTML = '<p class="chapters-empty">No distinct scene cuts detected.</p>';
-      } else {
-        const list = document.createElement('ul');
-        list.className = 'chapters-list';
-        chapters.forEach(ch => {
-          const item = document.createElement('li');
-          item.className = 'chapter-item';
-          const mins = Math.floor(ch.time / 60);
-          const secs = (ch.time % 60).toFixed(1).padStart(4, '0');
-          item.innerHTML = `<span class="chapter-ts">${mins}:${secs}</span><span class="chapter-label">${ch.label}</span>`;
-          item.addEventListener('click', () => { video.currentTime = ch.time; video.play().catch(() => {}); });
-          list.appendChild(item);
-        });
-        chaptersPanel.appendChild(list);
-      }
+      
+      CHAPTERS_CACHE.set(filename, chapters);
+      renderChaptersUI(chapters);
+      
       chaptersPanel.style.display = 'block';
       chaptersBtn.querySelector('.dl-label').textContent = 'Close';
     } catch (err) {
@@ -844,19 +1011,13 @@ async function handleGenerate() {
     }
     showResultsBadge(false);
 
-    // ── Record into Analytics + History ──────────────────────────────────
-    incrementStats(totalClips);
-
-    let thumbUrl = null;
+    // ── Update persistent history and dashboard stats in background ──────
     try {
-      const u = new URL(rawUrl);
-      let vid = u.searchParams.get('v');
-      if (!vid && u.pathname.startsWith('/shorts/')) vid = u.pathname.split('/')[2];
-      if (!vid && u.hostname === 'youtu.be') vid = u.pathname.slice(1);
-      if (vid) thumbUrl = `https://img.youtube.com/vi/${vid}/mqdefault.jpg`;
-    } catch { }
-
-    addHistoryEntry(rawUrl, totalClips, thumbUrl);
+      updateDashboard();
+      loadHistory(1);
+    } catch (e) {
+      console.error('[ClipperApp] Failed to refresh stats/history:', e);
+    }
 
   } catch (err) {
     stopLoadingAnimation();
@@ -1066,34 +1227,25 @@ clipsIncBtn.addEventListener('click', () => {
       if (panel) panel.classList.add('active');
 
       if (target === 'dashboard') updateDashboard();
-      if (target === 'history') renderHistory();
+      if (target === 'history') loadHistory(1);
     });
   });
 })();
 
-// --- Analytics State (persisted in sessionStorage) ---------------------------
-function getStats() {
-  return {
-    videos: parseInt(sessionStorage.getItem('stat_videos') || '0', 10),
-    clips: parseInt(sessionStorage.getItem('stat_clips') || '0', 10),
-  };
-}
+// --- Analytics State (SQLite persistent dashboard) ---------------------------
+async function updateDashboard() {
+  try {
+    const res = await fetch('/api/stats');
+    if (!res.ok) throw new Error('Failed to fetch stats');
+    const data = await res.json();
 
-function incrementStats(clipsAdded) {
-  const s = getStats();
-  sessionStorage.setItem('stat_videos', s.videos + 1);
-  sessionStorage.setItem('stat_clips', s.clips + clipsAdded);
-}
-
-function updateDashboard() {
-  const s = getStats();
-  const hoursPerClip = 0.5; // ~30min saved per clip
-  const hours = (s.clips * hoursPerClip).toFixed(1);
-
-  animateCounter('stat-videos', s.videos);
-  animateCounter('stat-clips', s.clips);
-  const hoursEl = document.getElementById('stat-hours');
-  if (hoursEl) hoursEl.textContent = hours + 'h';
+    animateCounter('stat-videos', data.videos);
+    animateCounter('stat-clips', data.clips);
+    const hoursEl = document.getElementById('stat-hours');
+    if (hoursEl) hoursEl.textContent = data.hours + 'h';
+  } catch (e) {
+    console.error('[ClipperApp] Failed to update dashboard:', e);
+  }
 }
 
 function animateCounter(id, target) {
@@ -1111,74 +1263,189 @@ function animateCounter(id, target) {
   requestAnimationFrame(step);
 }
 
-// --- History ------------------------------------------------------------------
-function getHistory() {
-  try { return JSON.parse(sessionStorage.getItem('clip_history') || '[]'); }
-  catch { return []; }
-}
+// --- SQLite Persistent History & Pagination ----------------------------------
+let currentHistoryPage = 1;
 
-function addHistoryEntry(url, clipCount, thumbnailUrl) {
-  const history = getHistory();
-  history.unshift({
-    url,
-    clipCount,
-    thumbnailUrl: thumbnailUrl || null,
-    date: new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }),
-    id: Date.now(),
-  });
-  sessionStorage.setItem('clip_history', JSON.stringify(history.slice(0, 50)));
-}
-
-function renderHistory() {
+async function loadHistory(page = 1) {
+  currentHistoryPage = page;
   const container = document.getElementById('history-container');
   const emptyEl = document.getElementById('history-empty');
-  const history = getHistory();
+  const paginationEl = document.getElementById('history-pagination');
+  const pageInfoEl = document.getElementById('history-page-info');
+  const prevBtn = document.getElementById('history-prev-btn');
+  const nextBtn = document.getElementById('history-next-btn');
 
   // Remove old items
   container.querySelectorAll('.history-item').forEach(el => el.remove());
 
-  if (history.length === 0) {
-    emptyEl.style.display = 'block';
-    return;
-  }
-  emptyEl.style.display = 'none';
+  try {
+    const res = await fetch(`/api/history?page=${page}&limit=10`);
+    if (!res.ok) throw new Error('Failed to fetch history from server.');
+    const data = await res.json();
+    const history = data.clips || [];
 
-  history.forEach(entry => {
-    const item = document.createElement('div');
-    item.className = 'history-item';
-    item.dataset.historyId = entry.id;
+    if (history.length === 0) {
+      emptyEl.style.display = 'block';
+      paginationEl.style.display = 'none';
+      return;
+    }
 
-    const thumbHtml = entry.thumbnailUrl
-      ? `<img src="${entry.thumbnailUrl}" alt="Thumbnail" loading="lazy" />`
-      : '??';
+    emptyEl.style.display = 'none';
+    
+    // Draw pagination controls
+    if (data.pages > 1) {
+      paginationEl.style.display = 'flex';
+      pageInfoEl.textContent = `Page ${data.page} of ${data.pages}`;
+      prevBtn.disabled = data.page <= 1;
+      nextBtn.disabled = data.page >= data.pages;
+    } else {
+      paginationEl.style.display = 'none';
+    }
 
-    item.innerHTML = `
-      <div class="history-thumb">${thumbHtml}</div>
-      <div class="history-info">
-        <div class="history-url" title="${entry.url}">${entry.url}</div>
-        <div class="history-meta">
-          <span class="history-date">${entry.date}</span>
-          <span class="history-clip-count">${entry.clipCount} clips</span>
+    history.forEach(entry => {
+      const item = document.createElement('div');
+      item.className = 'history-item';
+      item.dataset.historyId = entry.id;
+
+      // Local thumb or YT fallback or gorgeous abstract Unsplash image
+      let localThumb = `/clips/${entry.filename.split('.')[0]}_thumb.jpg`;
+      let ytFallback = '';
+      try {
+        const u = new URL(entry.source_url);
+        let vid = u.searchParams.get('v');
+        if (!vid && u.pathname.startsWith('/shorts/')) vid = u.pathname.split('/')[2];
+        if (!vid && u.hostname === 'youtu.be') vid = u.pathname.slice(1);
+        if (vid) ytFallback = `https://img.youtube.com/vi/${vid}/mqdefault.jpg`;
+      } catch {}
+
+      const defaultThumb = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150';
+
+      let scoreColor = '#ef4444';
+      let scoreBg = 'rgba(239,68,68,0.15)';
+      let scoreBorder = 'rgba(239,68,68,0.3)';
+      if (entry.viral_score >= 80) {
+        scoreColor = '#10b981';
+        scoreBg = 'rgba(16,185,129,0.15)';
+        scoreBorder = 'rgba(16,185,129,0.3)';
+      } else if (entry.viral_score >= 60) {
+        scoreColor = '#fbbf24';
+        scoreBg = 'rgba(251,191,36,0.15)';
+        scoreBorder = 'rgba(251,191,36,0.3)';
+      }
+
+      const formattedDate = new Date(entry.created_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+      const sizeMB = (entry.file_size / (1024 * 1024)).toFixed(1);
+
+      item.innerHTML = `
+        <div class="history-thumb">
+          <img src="${localThumb}" onerror="this.onerror=null; this.src='${ytFallback || defaultThumb}';" alt="Thumbnail" loading="lazy" />
         </div>
-      </div>
-      <button class="btn-view-clips" data-url="${encodeURIComponent(entry.url)}">View Clips</button>
-    `;
+        <div class="history-info">
+          <div class="history-url" title="${entry.source_url}">${entry.source_url}</div>
+          <div class="history-meta">
+            <span class="history-date">${formattedDate}</span>
+            <span class="history-dot">•</span>
+            <span class="history-detail">${entry.duration}s</span>
+            <span class="history-dot">•</span>
+            <span class="history-detail">${entry.resolution}</span>
+            <span class="history-dot">•</span>
+            <span class="history-detail">${sizeMB} MB</span>
+            <span class="history-dot">•</span>
+            <span class="history-detail" style="font-weight:700;color:#fbbf24">${entry.style.toUpperCase()}</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;margin-left:auto;">
+          <span class="viral-badge" style="background: ${scoreBg}; color: ${scoreColor}; border: 1px solid ${scoreBorder}; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; letter-spacing: 0.05em;">
+            <span class="material-symbols-outlined" style="font-size:14px;font-variation-settings:'FILL' 1">bolt</span>
+            ${entry.viral_score}% VIRAL
+          </span>
+          <button class="btn-play-history" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#fff;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;" title="Preview in Studio">
+            <span class="material-symbols-outlined" style="font-size:20px;font-variation-settings:'FILL' 1">play_arrow</span>
+          </button>
+          <button class="btn-delete-history" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#f43f5e;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;" title="Delete Record">
+            <span class="material-symbols-outlined" style="font-size:20px;">delete</span>
+          </button>
+        </div>
+      `;
 
-    item.querySelector('.btn-view-clips').addEventListener('click', () => {
-      // Switch to Studio tab and pre-fill URL
-      document.querySelector('[data-tab="studio"]').click();
-      urlInput.value = entry.url;
-      urlInput.focus();
+      // Preview Event Listener
+      item.querySelector('.btn-play-history').addEventListener('click', () => {
+        document.querySelector('[data-tab="studio"]').click();
+        showScreen('results');
+        const url = `/clips/${entry.filename}`;
+        const card = createVideoCard(
+          url,
+          1,
+          [],
+          true,
+          true,
+          true,
+          entry.viral_score,
+          0,
+          true
+        );
+        resultsGallery.innerHTML = '';
+        resultsGallery.appendChild(card);
+        resultsCount.textContent = '1';
+      });
+
+      // Delete Event Listener
+      item.querySelector('.btn-delete-history').addEventListener('click', async () => {
+        if (!confirm('Are you sure you want to remove this clip record from history?')) return;
+        try {
+          const delRes = await fetch(`/api/history/${entry.id}`, { method: 'DELETE' });
+          if (delRes.ok) {
+            loadHistory(currentHistoryPage);
+            updateDashboard();
+          } else {
+            alert('Failed to delete clip record.');
+          }
+        } catch (e) {
+          console.error('[ClipperApp] Delete failed:', e);
+        }
+      });
+
+      container.appendChild(item);
     });
 
-    container.appendChild(item);
-  });
+  } catch (err) {
+    console.error('[ClipperApp] loadHistory error:', err);
+    container.innerHTML = `<div class="error-toast" style="margin-top:20px;">Failed to load history: ${err.message}</div>`;
+  }
 }
 
+// --- Pagination Buttons Binding ----------------------------------------------
+(function initHistoryPagination() {
+  const prevBtn = document.getElementById('history-prev-btn');
+  const nextBtn = document.getElementById('history-next-btn');
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      if (currentHistoryPage > 1) {
+        loadHistory(currentHistoryPage - 1);
+      }
+    });
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      loadHistory(currentHistoryPage + 1);
+    });
+  }
+})();
+
 // --- Clear History ------------------------------------------------------------
-document.getElementById('clear-history-btn').addEventListener('click', () => {
-  sessionStorage.removeItem('clip_history');
-  renderHistory();
+document.getElementById('clear-history-btn').addEventListener('click', async () => {
+  if (!confirm('Are you sure you want to permanently clear all generated history? This cannot be undone.')) return;
+  try {
+    const res = await fetch('/api/history', { method: 'DELETE' });
+    if (res.ok) {
+      loadHistory(1);
+      updateDashboard();
+    } else {
+      alert('Failed to clear history database.');
+    }
+  } catch (e) {
+    console.error('[ClipperApp] Clear history failed:', e);
+  }
 });
 
 // --- Caption Style Card Selection --------------------------------------------
@@ -1679,3 +1946,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.getUploadedFont = () => _uploadedFontName;
 })();
+
+// ── yt-dlp Auto-Updater ──────────────────────────────────────────────────────
+async function updateYtdlp() {
+  const btn = document.getElementById('ytdlp-update-btn');
+  const span = document.getElementById('ytdlp-version');
+  if (!btn) return;
+  
+  btn.innerHTML = '⏳ Updating...';
+  btn.disabled = true;
+  
+  try {
+    const res = await fetch('/api/update-ytdlp', { method: 'POST' });
+    const data = await res.json();
+    if (data.current_version && span) {
+      span.textContent = data.current_version;
+    }
+  } catch(e) {
+    console.error("Failed to trigger yt-dlp update", e);
+  }
+  
+  setTimeout(() => {
+    btn.innerHTML = '✅ Updated';
+    setTimeout(() => {
+      btn.innerHTML = '🔄 Update';
+      btn.disabled = false;
+    }, 3000);
+  }, 5000); // Simulate background duration or wait
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // Fetch initial yt-dlp version from health endpoint
+  try {
+    const res = await fetch('/health');
+    const data = await res.json();
+    if (data.ytdlp && data.ytdlp.version) {
+      const span = document.getElementById('ytdlp-version');
+      if (span) span.textContent = data.ytdlp.version;
+    }
+  } catch (e) {
+    console.error("Failed to load health status", e);
+  }
+});

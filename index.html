@@ -493,6 +493,36 @@
             </div>
           </div>
 
+          <!-- ── Groq API Key Settings ── -->
+          <div class="field-group" id="api-settings-section" style="margin-bottom: 24px;">
+            <p class="field-label" style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+              <span class="material-symbols-outlined" style="font-size:15px;color:#d0bcff;font-variation-settings:'FILL' 1">key</span>
+              Groq API Key
+            </p>
+            <div class="glass-input-wrap input-wrapper">
+              <span class="material-symbols-outlined field-icon" style="color:#d0bcff;font-variation-settings:'FILL' 1">vpn_key</span>
+              <input id="groq-key-input" type="password" placeholder="Paste your Groq API Key here..." autocomplete="off" spellcheck="false"/>
+            </div>
+            <p style="font-size:11px;color:#9e8f78;margin-top:6px;line-height:1.4;">
+              Optional. Needed for AI viral hook generation. Get a free key at 
+              <a href="https://console.groq.com" target="_blank" style="color:#fbbf24;text-decoration:underline;">console.groq.com</a>.
+            </p>
+          </div>
+
+          <!-- ── yt-dlp Update Settings ── -->
+          <div class="field-group" style="margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <p class="field-label" style="display:flex;align-items:center;gap:6px;margin:0;">
+                <span class="material-symbols-outlined" style="font-size:15px;color:#d0bcff;font-variation-settings:'FILL' 1">system_update_alt</span>
+                yt-dlp Core
+              </p>
+              <span id="ytdlp-version" style="font-size:11px;color:#9e8f78;">vUnknown</span>
+            </div>
+            <button onclick="updateYtdlp()" id="ytdlp-update-btn" class="btn-secondary" style="padding: 6px 12px; font-size: 12px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; cursor: pointer;">
+              🔄 Update
+            </button>
+          </div>
+
           <!-- Generate Button -->
           <button id="generate-btn" class="btn-generate" aria-label="Generate Viral Shorts">
             <span class="material-symbols-outlined" style="font-size:20px;font-variation-settings:'FILL' 1">bolt</span>
@@ -512,8 +542,8 @@
                 <div class="select-wrapper">
                   <select id="res-select" class="export-select" aria-label="Video Resolution">
                     <option value="480p">480p – SD</option>
-                    <option value="720p" selected>720p – HD</option>
-                    <option value="1080p">1080p – Full HD</option>
+                    <option value="720p">720p – HD</option>
+                    <option value="1080p" selected>1080p – Full HD</option>
                     <option value="4k">4K – Ultra HD</option>
                   </select>
                   <span class="select-arrow">
@@ -801,6 +831,19 @@
         </button>
       </div>
       <div id="history-container"></div>
+
+      <!-- History Pagination -->
+      <div id="history-pagination" class="pagination-controls" style="display:none;align-items:center;justify-content:center;gap:16px;margin-top:24px;">
+        <button id="history-prev-btn" class="btn-download" style="padding:8px 16px;font-size:12px;display:flex;align-items:center;gap:6px;" disabled>
+          <span class="material-symbols-outlined" style="font-size:16px;">arrow_back</span>
+          Prev
+        </button>
+        <span id="history-page-info" style="color:#9e8f78;font-size:13px;font-weight:700;letter-spacing:0.04em;">Page 1 of 1</span>
+        <button id="history-next-btn" class="btn-download" style="padding:8px 16px;font-size:12px;display:flex;align-items:center;gap:6px;" disabled>
+          Next
+          <span class="material-symbols-outlined" style="font-size:16px;">arrow_forward</span>
+        </button>
+      </div>
       <div id="history-empty" class="history-empty">
         <div class="history-empty-icon">
           <span class="material-symbols-outlined" style="font-size:36px;color:#9e8f78;font-variation-settings:'FILL' 1">history</span>

@@ -1308,11 +1308,35 @@ input, select { font-family: inherit; }
   border-radius: 10px;
   overflow: hidden;
 }
+.chapters-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.chapters-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ede1d0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.chapters-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
 .chapters-list { list-style: none; padding: 0; margin: 0; }
 .chapter-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   padding: 8px 14px;
   cursor: pointer;
   border-bottom: 1px solid rgba(255,255,255,0.05);
@@ -1320,22 +1344,70 @@ input, select { font-family: inherit; }
 }
 .chapter-item:last-child { border-bottom: none; }
 .chapter-item:hover { background: rgba(255,255,255,0.06); }
-.chapter-ts {
+.chapter-number {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8b5cf6;
+  min-width: 18px;
+}
+.chapter-time {
   font-size: 11px;
   font-weight: 700;
   color: #38bdf8;
-  font-variant-numeric: tabular-nums;
   min-width: 38px;
+  font-variant-numeric: tabular-nums;
 }
 .chapter-label {
   font-size: 12px;
   color: #d1d5db;
   line-height: 1.35;
+  flex: 1;
 }
 .chapters-empty {
   padding: 12px 14px;
   font-size: 12px;
   color: #6b7280;
+}
+
+/* ── Custom Timeline & Chapter Markers ───────────────────────────────────── */
+.progress-bar[data-filename] {
+  position: relative;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  margin: 10px 14px 4px;
+  cursor: pointer;
+  overflow: visible; /* Crucial so that chapter markers hover properly */
+  transition: height 0.15s ease, background 0.15s ease;
+}
+.progress-bar[data-filename]:hover {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.15);
+}
+.progress-bar[data-filename] .progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #fbbf24, #d97706);
+  border-radius: 3px;
+  pointer-events: none;
+}
+.chapter-marker {
+  position: absolute;
+  top: 0;
+  width: 3px;
+  height: 100%;
+  background: #f59e0b;
+  box-shadow: 0 0 4px rgba(245, 158, 11, 0.6);
+  cursor: pointer;
+  z-index: 5;
+  transition: all 0.15s ease;
+}
+.chapter-marker:hover {
+  width: 5px;
+  height: 140%;
+  top: -20%;
+  background: #fbbf24;
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.9);
 }
 
 /* ── Viral Score Badge ──────────────────────────────────────────────────── */
@@ -1381,4 +1453,77 @@ input, select { font-family: inherit; }
   pointer-events: none;
   white-space: nowrap;
   box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+
+/* ── Error Clip Card ─────────────────────────────────────────────────────── */
+.clip-card--error {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(45, 20, 20, 0.6);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.15);
+}
+
+.clip-card--error .error-preview {
+  height: 180px;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.clip-card--error .error-icon {
+  color: #ef4444;
+  margin-bottom: 12px;
+}
+
+.clip-card--error .error-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fca5a5;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.clip-card--error .video-info {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: calc(100% - 180px);
+}
+
+.clip-card--error .error-detail {
+  font-size: 13px;
+  color: #fca5a5;
+  opacity: 0.8;
+  line-height: 1.5;
+  flex: 1;
+}
+
+.clip-card--error .video-actions {
+  display: flex;
+  margin-top: auto;
+}
+
+.clip-card--error .btn.secondary.outline {
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.clip-card--error .btn.secondary.outline:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
 }
